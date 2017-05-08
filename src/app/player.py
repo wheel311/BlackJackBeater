@@ -1,10 +1,19 @@
+from .hand import Hand, HandStates
+from enum import Enum
+
+class PlayerActions(Enum):
+    _hit = 0
+    _stand = 1
+    _split = 2
+    _double = 3
+
 
 class Player:
     max_splits = 4
     max_splits_aces = 2
 
     def __init__(self, bankroll):
-        reset(self)
+        self.reset()
         self.bankroll = bankroll
     
 
@@ -12,7 +21,7 @@ class Player:
     # reset player values
     #############################################
     def reset(self):
-        self.hands = []
+        self.hands = [Hand()]
         self.current_hand_index = 0
         self.bet = 0
         self.splits = 0
@@ -26,35 +35,116 @@ class Player:
 
 
     #############################################
-    # Take a card from the shoe
+    # Add a card to one of the player's hands
     #############################################
-    def add_card(self, card):
-        self.hands[self.current_hand_index].add
+    def add_card(self, hand, card):
+        hand.add_card(card)
+
+    #############################################
+    # Add a card to one of the player's hands
+    #############################################
+    def double(self, hand, card):
+        self.bet *=2
+        hand.add_card(card)
 
 
-    #############################################
-    # Take actions until finished with hand (bust or stand)
-    #############################################
-    def play_hand(self, dealer_card):
-        pass
+    ############################################
+    # Execute split
+    ############################################
+    def split(self, hand):
+        removed_card = hand.remove_last_card()
+        self.hands.append(Hand())
+        new_hand = self.hands[-1]
+        new_hand.add_card(removed_card)
 
 
     #############################################
     # Determine action to take based on strategy
     #############################################
-    def take_action(self, dealer_card):
+    def take_action(self, hand, dealer_card):
         #-------------------------------------------------
-        # handle splits
-        if (len(self.hand == 2) and self.hand[0].value == self.hand[1] == value):
-            #TODO: handle multiple hands per player for splits
+        # handle cases where player should split
+        if (len(hand.cards) == 2 and hand.cards[0].value == hand.cards[1].value):
+            split_card_value = hand.cards[0].value
+
+            if(split_card_value == 2 or split_card_value == 3):
+                if(dealer_card.value >=2 and dealer_card.value <= 7):
+                    return PlayerActions._split
+            if(split_card_value == 4):
+                if(dealer_card.value >=5 and dealer_card.value <=6):
+                    return PlayerActions._split
+            if(split_card_value == 6):
+                if(dealer_card.value >=2 and dealer_card.value <=6):
+                    return PlayerActions._split
+            if(split_card_value == 7):
+                if(dealer_card.value >=2 and dealer_card.value <=7):
+                    return PlayerActions._split
+            if(split_card_value == 9):
+                if((dealer_card.value >=2 and dealer_card.value <=6) or 
+                    (dealer_card.value >=8 and dealer_card.value <=9)):
+                    return PlayerActions._split
+            if(split_card_value == 8 or split_card_value == 11):
+                return PlayerActions._split
 
         #-------------------------------------------------
         # handle when player has ace (and cannot split aces)
-        elif (self.has_ace):
-            pass
+        if (hand.number_of_aces > 0):
+            if(hand.total == 13 or hand.total == 14):
+                if(len(hand.cards) == 2 and dealer_card.value >=5 and dealer_card.value <=6):
+                    return PlayerActions._double
+                else:
+                    return PlayerActions._hit
+            if(hand.total == 15 or hand.total == 16):
+                if(len(hand.cards) == 2 and dealer_card.value >=4 and dealer_card.value <=6):
+                    return PlayerActions._double
+                else:
+                    return PlayerActions._hit
+            if(hand.total == 17):
+                if(len(hand.cards) == 2 and dealer_card.value >=3 and dealer_card.value <=6):
+                    return PlayerActions._double
+                else:
+                    return PlayerActions._hit
+            if(hand.total == 18):
+                if(len(hand.cards) == 2 and dealer_card.value >=3 and dealer_card.value <=6):
+                    return PlayerActions._double
+                elif(dealer_card.value == 2 or dealer_card.value >=7 and dealer_card.value <=8):
+                    return PlayerActions._stand
+                else:
+                    return PlayerActions._hit
+            
 
         #-------------------------------------------------
-        # handle normal case
-        else:
-            pass
+        # handle normal case, if above cases didn't return
+        if(hand.total < 8):
+            return PlayerActions._hit
+        if(hand.total == 9):
+            if(len(hand.cards) == 2 and dealer_card.value >=3 and dealer_card.value <=6):
+                return PlayerActions._double
+            else:
+                return PlayerActions._hit
+        if(hand.total == 10):
+            if(len(hand.cards) == 2 and dealer_card.value >=2 and dealer_card.value <=9):
+                return PlayerActions._double
+            else:
+                return PlayerActions._hit
+        if(hand.total == 11):
+            if(len(hand.cards) == 2 and dealer_card.value >=2 and dealer_card.value <=10):
+                return PlayerActions._double
+            else:
+                return PlayerActions._hit
+        if(hand.total == 12 ):
+            if(dealer_card.value >=4 and dealer_card.value <=6):
+                return PlayerActions._stand
+            else:
+                return PlayerActions._hit
+        if(hand.total >= 13 and hand.total <= 16 ):
+            if(dealer_card.value >=4 and dealer_card.value <=6):
+                return PlayerActions._stand
+            else:
+                return PlayerActions._hit
+        if(hand.total >= 17 ):
+            return PlayerActions._stand
 
+        
+        print("OOPS: " + str(hand.total) + " : " + str(dealer_card.value))
+    # END take_action
