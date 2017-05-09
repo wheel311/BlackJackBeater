@@ -45,7 +45,9 @@ class Table:
                         player.bankroll -= player.bet
                     #stand
                     elif(hand.state == HandStates._standing):
-                        if(self.dealer.hand.total > hand.total):
+                        if(self.dealer.hand.state == HandStates._busted):
+                            player.bankroll += player.bet
+                        elif(self.dealer.hand.total > hand.total):
                             player.bankroll -= player.bet
                         elif(self.dealer.hand.total < hand.total):
                             player.bankroll += player.bet
@@ -55,7 +57,9 @@ class Table:
             for player in self.players:
                 player.reset()
             self.dealer.reset()
-
+            
+            for player_index in range(0, len(self.players)):
+                print("Player " + str(player_index) + " Bankroll: " + str(self.players[player_index].bankroll))
             print("---------------------------------------")
 
 
@@ -72,7 +76,6 @@ class Table:
         #check for player blackjacks
         for player_index in range(0, len(self.players)):
             self.check_for_player_blackjack(self.players[player_index])
-        print(self.players[0].hands[0].state)
         
         #play the hands for each player at the table if dealer does not have blackjack
         if(not self.dealer.hand.state == HandStates._blackjack):
