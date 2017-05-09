@@ -9,8 +9,8 @@ class PlayerActions(Enum):
 
 
 class Player:
-    max_splits = 4
-    max_splits_aces = 2
+    _max_splits = 4
+    _max_splits_aces = 2
 
     def __init__(self, bankroll):
         self.reset()
@@ -22,7 +22,6 @@ class Player:
     #############################################
     def reset(self):
         self.hands = [Hand()]
-        self.current_hand_index = 0
         self.bet = 0
         self.splits = 0
     
@@ -30,7 +29,7 @@ class Player:
     #############################################
     # Determine bet based on strategy
     #############################################
-    def bet(self):
+    def place_bet(self):
         self.bet = 1
 
 
@@ -38,6 +37,8 @@ class Player:
     # Add a card to one of the player's hands
     #############################################
     def add_card(self, hand, card):
+        if(len(hand.cards) >= 2):
+            print("\t" + str(card.value))
         hand.add_card(card)
 
     #############################################
@@ -115,7 +116,7 @@ class Player:
 
         #-------------------------------------------------
         # handle normal case, if above cases didn't return
-        if(hand.total < 8):
+        if(hand.total <= 8):
             return PlayerActions._hit
         if(hand.total == 9):
             if(len(hand.cards) == 2 and dealer_card.value >=3 and dealer_card.value <=6):
@@ -138,7 +139,7 @@ class Player:
             else:
                 return PlayerActions._hit
         if(hand.total >= 13 and hand.total <= 16 ):
-            if(dealer_card.value >=4 and dealer_card.value <=6):
+            if(dealer_card.value >=2 and dealer_card.value <=6):
                 return PlayerActions._stand
             else:
                 return PlayerActions._hit

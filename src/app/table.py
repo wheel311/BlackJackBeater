@@ -25,8 +25,38 @@ class Table:
     # Play hands until the shoe penetration has exceeded the max allowed
     def play_shoe(self):
         while(self.shoe.current_penetration < Shoe.max_penetration):
+
+            # #place bets for each player
+            for player in self.players:
+                player.place_bet()
+
+            #play hand for every player 
             self.play_round()
-            break
+
+            #manage payouts (FIXME: pull into method?)
+            for player in self.players:
+                for hand in player.hands:
+                    #blackjack
+                    if(hand.state == HandStates._blackjack):
+                        if(not self.dealer.hand.state == HandStates._blackjack):
+                            player.bankroll += 1.5 * player.bet
+                    #bust
+                    elif(hand.state == HandStates._busted):
+                        player.bankroll -= player.bet
+                    #stand
+                    elif(hand.state == HandStates._standing):
+                        if(self.dealer.hand.total > hand.total):
+                            player.bankroll -= player.bet
+                        elif(self.dealer.hand.total < hand.total):
+                            player.bankroll += player.bet
+                        #else push, so do nothing
+
+            #reset player and dealer hands
+            for player in self.players:
+                player.reset()
+            self.dealer.reset()
+
+            print("---------------------------------------")
 
 
     ######################################################
@@ -36,7 +66,8 @@ class Table:
         self.deal()
         print(str(self.players[0].hands[0].cards[0].value) +  " + " + str(self.players[0].hands[0].cards[1].value) + ": ", end='')
         print(self.players[0].hands[0].total)
-        print(self.dealer.up_card.value)
+        print(self.dealer.up_card.value, end="")
+        print(" (" + str(self.dealer.hand.cards[1].value) + ")")
 
         #check for player blackjacks
         for player_index in range(0, len(self.players)):
@@ -55,10 +86,10 @@ class Table:
             self.play_dealer_hand()
 
 
+        print("End player state: ", end="")
         print(self.players[0].hands[0].state)
+        print("End dealer state: ", end="")
         print(self.dealer.hand.state)
-        #payouts
-        #TODO:
 
 
     #################################################
@@ -77,12 +108,13 @@ class Table:
     def play_player_hands(self, player):
         hand_index = 0
         while(hand_index < len(player.hands)):
+            print("new player hand")
             current_hand = player.hands[hand_index]
             while current_hand.state == HandStates._active:
                 action = player.take_action(current_hand, self.dealer.up_card)
                 print(action)
                 self.handle_player_action(action, player, current_hand)
-                print("player total: " + str(player.hands[0].total))
+                print("player total: " + str(current_hand.total))
             hand_index +=1 
             
 

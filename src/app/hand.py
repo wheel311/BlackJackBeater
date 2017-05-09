@@ -37,7 +37,7 @@ class Hand:
 
     def remove_last_card(self):
         card_to_remove = self.cards.pop()
-        self.total -= card_to_remove.total
+        self.total -= card_to_remove.value
         if(card_to_remove.value == 11):
             self.number_of_aces -=1
         return card_to_remove
