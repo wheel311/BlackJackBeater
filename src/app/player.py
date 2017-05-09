@@ -148,4 +148,5 @@ class Player:
 
         
         print("OOPS: " + str(hand.total) + " : " + str(dealer_card.value))
+        raise Exception('Case not handled by player strategy')
     # END take_action
